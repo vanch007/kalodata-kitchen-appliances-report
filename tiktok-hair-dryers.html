@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TikTok 吹风机类目分析 / Hair Dryers Category Report</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+:root {
+  --bg-primary:#0f172a;--bg-card:#1e293b;--bg-card-hover:#334155;
+  --text-primary:#f1f5f9;--text-secondary:#94a3b8;
+  --accent:#6366f1;--accent-light:#818cf8;
+  --success:#10b981;--warning:#f59e0b;--danger:#ef4444;
+  --border:#334155;
+  --gradient-1:linear-gradient(135deg,#6366f1,#8b5cf6);
+  --gradient-2:linear-gradient(135deg,#06b6d4,#3b82f6);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg-primary);color:var(--text-primary);line-height:1.6}
+.report-header{background:var(--gradient-1);padding:48px 40px;text-align:center;position:relative;overflow:hidden}
+.report-header::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,0.05) 0%,transparent 70%)}
+.report-header h1{font-size:2.2rem;font-weight:700;margin-bottom:8px;position:relative}
+.report-header .subtitle{font-size:.95rem;opacity:.8;position:relative}
+.report-header .meta{font-size:.85rem;opacity:.6;margin-top:12px;position:relative}
+.container{max-width:1200px;margin:0 auto;padding:32px 24px}
+.section{margin-bottom:48px}
+.section-title{font-size:1.5rem;font-weight:700;margin-bottom:24px;padding-bottom:12px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:10px}
+.section-summary{color:var(--text-secondary);margin-bottom:20px;font-size:.95rem;line-height:1.8;white-space:pre-line;padding:16px 20px;background:var(--bg-card);border-radius:10px;border-left:3px solid var(--accent)}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.kpi-card{background:var(--bg-card);border-radius:12px;padding:18px 16px;text-align:center;border:1px solid var(--border);transition:transform .2s,box-shadow .2s}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.kpi-card .icon{font-size:1.6rem;margin-bottom:6px}
+.kpi-card .label{color:var(--text-secondary);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px}
+.kpi-card .value{font-size:1.4rem;font-weight:700;margin:4px 0;background:var(--gradient-1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.charts-grid{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:24px}
+.chart-wrapper{background:var(--bg-card);border-radius:12px;padding:14px;border:1px solid var(--border);text-align:center;display:flex;flex-direction:column;align-items:center;min-width:0;overflow:hidden}
+.plotly-chart{width:100%;min-height:450px;max-width:100%}
+.table-wrapper{background:var(--bg-card);border-radius:12px;padding:16px;margin-bottom:20px;border:1px solid var(--border);overflow-x:auto}
+.table-wrapper .table-title{font-size:1rem;font-weight:600;margin-bottom:12px;color:var(--text-primary)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+thead th{background:rgba(99,102,241,.15);color:var(--accent-light);font-weight:600;text-align:left;padding:10px 12px;border-bottom:2px solid var(--border);white-space:nowrap}
+tbody td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text-primary)}
+tbody tr:hover{background:var(--bg-card-hover)}
+tbody tr:last-child td{border-bottom:none}
+td a{color:var(--accent-light);text-decoration:none} td a:hover{text-decoration:underline}
+.lang-toggle{position:fixed;top:18px;right:24px;z-index:9999;display:flex;gap:4px;background:rgba(15,23,42,.85);border:1px solid var(--border);border-radius:24px;padding:4px 6px;backdrop-filter:blur(8px);box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.lang-btn{padding:5px 14px;border-radius:20px;border:none;cursor:pointer;font-size:.8rem;font-weight:600;letter-spacing:.5px;transition:all .2s;background:transparent;color:var(--text-secondary)}
+.lang-btn.active{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(99,102,241,.4)}
+.lang-btn:hover:not(.active){background:var(--bg-card-hover);color:var(--text-primary)}
+[data-lang]{display:none!important}
+body.lang-zh [data-lang="zh"]{display:block!important}
+body.lang-en [data-lang="en"]{display:block!important}
+.report-footer{text-align:center;padding:32px;color:var(--text-secondary);font-size:.85rem;border-top:1px solid var(--border);margin-top:48px}
+details.l3-category{border:1px solid rgba(99,102,241,.15);border-radius:10px;margin-bottom:16px;overflow:hidden;transition:all .3s ease}
+details.l3-category[open]{border-color:rgba(99,102,241,.25);box-shadow:0 2px 12px rgba(99,102,241,.08)}
+details.l3-category>summary{cursor:pointer;padding:14px 18px;background:linear-gradient(135deg,rgba(99,102,241,.06),rgba(139,92,246,.04));font-size:1.05rem;font-weight:600;color:var(--text-primary);list-style:none;display:flex;align-items:center;gap:8px;user-select:none;transition:background .2s}
+details.l3-category>summary:hover{background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(139,92,246,.08))}
+details.l3-category>summary::before{content:'▶';font-size:.75rem;transition:transform .2s ease;color:var(--accent)}
+details.l3-category[open]>summary::before{transform:rotate(90deg)}
+details.l3-category>summary::-webkit-details-marker{display:none}
+details.l3-category>.l3-content{padding:16px}
+@media (max-width:768px){.charts-grid{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+@media print{body{background:white;color:#1e293b}.lang-toggle{display:none}.report-header{background:#6366f1!important;print-color-adjust:exact}}
+</style>
+</head>
+<body class="lang-zh">
+
+<script>
+function renderPlotly(elId, chartData, darkBg) {
+  requestAnimationFrame(function() {
+    var d=chartData,el=document.getElementById(elId);
+    if(!d||!d.data||!el)return;
+    d.layout=d.layout||{};d.layout.paper_bgcolor='transparent';d.layout.plot_bgcolor='transparent';
+    d.layout.font=d.layout.font||{};d.layout.font.color=darkBg?'#e2e8f0':'#1e293b';
+    var ax=darkBg?'#cbd5e1':'#475569';
+    if(d.layout.xaxis){d.layout.xaxis.tickfont=d.layout.xaxis.tickfont||{};d.layout.xaxis.tickfont.color=ax;if(d.layout.xaxis.title&&typeof d.layout.xaxis.title==='object'){d.layout.xaxis.title.font=d.layout.xaxis.title.font||{};d.layout.xaxis.title.font.color=ax}}
+    if(d.layout.yaxis){d.layout.yaxis.tickfont=d.layout.yaxis.tickfont||{};d.layout.yaxis.tickfont.color=ax;if(d.layout.yaxis.title&&typeof d.layout.yaxis.title==='object'){d.layout.yaxis.title.font=d.layout.yaxis.title.font||{};d.layout.yaxis.title.font.color=ax}}
+    d.layout.margin=d.layout.margin||{l:60,r:30,t:40,b:60};
+    d.layout.autosize=true;
+    Plotly.newPlot(el,d.data,d.layout,{responsive:true,displayModeBar:false});
+    el.on('plotly_click',function(ev){var pt=ev.points[0];if(pt&&pt.customdata&&typeof pt.customdata==='string'&&pt.customdata.indexOf('http')===0)window.open(pt.customdata,'_blank');});
+  });
+}
+</script>
+<div data-lang="zh"><div class="report-header"><h1>🎵 TikTok 吹风机 类目分析报告</h1><div class="subtitle">Metric.vn 30 天数据</div><div class="meta">数据周期: 2026-02-15 ~ 2026-03-16 | 生成日期: 2026-03-21</div></div></div>
+<div data-lang="en"><div class="report-header"><h1>🎵 TikTok Hair Dryers Category Report</h1><div class="subtitle">Metric.vn 30-Day Data</div><div class="meta">Data Period: 2026-02-15 ~ 2026-03-16 | Generated: 2026-03-21</div></div></div>
+<div class="lang-toggle">
+<button class="lang-btn" id="btnZh" onclick="setLang('zh')">中文</button>
+<button class="lang-btn active" id="btnEn" onclick="setLang('en')">EN</button>
+</div>
+<script>
+function setLang(l){document.body.className='lang-'+l;document.getElementById('btnZh').classList.toggle('active',l==='zh');document.getElementById('btnEn').classList.toggle('active',l==='en');try{localStorage.setItem('report-lang',l)}catch(e){}setTimeout(function(){document.querySelectorAll('[data-lang="'+l+'"] .plotly-chart').forEach(function(el){if(el.data)Plotly.Plots.resize(el)})},50)}
+(function(){var s='en';try{s=localStorage.getItem('report-lang')||'en'}catch(e){}setLang(s)})();
+</script>
+<div data-lang="zh"><div class="container">
+<div class="section"><h2 class="section-title">📋 执行摘要</h2>
+<div class="section-summary">📌 数据来源：Metric.vn · TikTok 越南站
+📁 吹风机类目商品数据 · 时间: 2026-02-15 ~ 2026-03-16 · 244 条商品
+该品类当前共有 244 款活跃商品，月总销量 147,185.0，GMV ₫41.0B。</div>
+<div class="kpi-grid">
+<div class="kpi-card"><div class="icon">📦</div><div class="label">总商品数</div><div class="value">244</div></div>
+<div class="kpi-card"><div class="icon">🛒</div><div class="label">总销量</div><div class="value">147.2K</div></div>
+<div class="kpi-card"><div class="icon">💰</div><div class="label">总 GMV</div><div class="value">₫41.0B</div></div>
+<div class="kpi-card"><div class="icon">🏷️</div><div class="label">均价</div><div class="value">₫986K</div></div>
+<div class="kpi-card"><div class="icon">🏪</div><div class="label">活跃店铺</div><div class="value">137</div></div>
+<div class="kpi-card"><div class="icon">🏭</div><div class="label">品牌数</div><div class="value">70</div></div>
+<div class="kpi-card"><div class="icon">🎯</div><div class="label">Top10店铺集中度</div><div class="value">64.7%</div></div>
+<div class="kpi-card"><div class="icon">⭐</div><div class="label">总评价数</div><div class="value">213.6K</div></div>
+</div></div>
+</div></div>
+<div data-lang="en"><div class="container">
+<div class="section"><h2 class="section-title">📋 Executive Summary</h2>
+<div class="section-summary">📌 Data Source: Metric.vn · TikTok Vietnam
+📁 Hair Dryers Product Data · Period: 2026-02-15 ~ 2026-03-16 · 244 products
+This category has 244 active products, monthly sales 147,185.0 units, GMV ₫41.0B.</div>
+<div class="kpi-grid">
+<div class="kpi-card"><div class="icon">📦</div><div class="label">Total Products</div><div class="value">244</div></div>
+<div class="kpi-card"><div class="icon">🛒</div><div class="label">Total Sold</div><div class="value">147.2K</div></div>
+<div class="kpi-card"><div class="icon">💰</div><div class="label">Total GMV</div><div class="value">₫41.0B</div></div>
+<div class="kpi-card"><div class="icon">🏷️</div><div class="label">Avg. Price</div><div class="value">₫986K</div></div>
+<div class="kpi-card"><div class="icon">🏪</div><div class="label">Active Shops</div><div class="value">137</div></div>
+<div class="kpi-card"><div class="icon">🏭</div><div class="label">Brands</div><div class="value">70</div></div>
+<div class="kpi-card"><div class="icon">🎯</div><div class="label">Top10 Shop Concentration</div><div class="value">64.7%</div></div>
+<div class="kpi-card"><div class="icon">⭐</div><div class="label">Total Reviews</div><div class="value">213.6K</div></div>
+</div></div>
+</div></div>
+<div data-lang="zh"><div class="container">
+<div class="section"><h2 class="section-title">📊 市场大盘 & L3 类目分布</h2>
+<div class="section-summary">吹风机类目共包含 1 个三级子类目。吹风机 以 ₫41.0B (100.0%) 的 GMV 领跑。</div>
+<div class="charts-grid"><div class="chart-wrapper"><div id="pie_zh" class="plotly-chart"></div></div></div>
+<script>renderPlotly("pie_zh",{"data": [{"type": "pie", "labels": ["吹风机"], "values": [100.0], "hole": 0.45, "marker": {"colors": ["#6366f1"]}, "textposition": "inside", "textinfo": "label+percent", "textfont": {"size": 10}}], "layout": {"title": {"text": "L3 类目 GMV 占比", "font": {"size": 14}}, "showlegend": false}},true);</script>
+<div class="charts-grid"><div class="chart-wrapper"><div id="bar_zh" class="plotly-chart"></div></div></div>
+<script>renderPlotly("bar_zh",{"data": [{"type": "bar", "x": ["吹风机"], "y": [100.0], "name": "Products%", "marker": {"color": "#6366f1"}}, {"type": "bar", "x": ["吹风机"], "y": [100.0], "name": "Sales%", "marker": {"color": "#8b5cf6"}}, {"type": "bar", "x": ["吹风机"], "y": [100.0], "name": "GMV%", "marker": {"color": "#ec4899"}}], "layout": {"title": {"text": "L3 三维对比 (商品数/销量/GMV)", "font": {"size": 14}}, "barmode": "group", "xaxis": {"tickangle": -30, "tickfont": {"size": 10}}, "yaxis": {"title": {"text": "%"}}, "legend": {"x": 0, "y": 1.15, "orientation": "h"}, "bargap": 0.25}},true);</script>
+<div class="charts-grid"><div class="chart-wrapper"><div id="ser_zh" class="plotly-chart"></div></div></div>
+<script>renderPlotly("ser_zh",{"data": [{"type": "scatter", "mode": "markers+text", "name": "⭐ Star", "x": [1.0], "y": [1.0], "text": ["吹风机"], "textposition": "top center", "textfont": {"size": 9}, "marker": {"size": [50], "color": "#f59e0b", "opacity": 0.8}, "hovertemplate": "<b>%{text}</b><br>E=%{x:.2f} R=%{y:.2f}<extra>⭐ Star</extra>"}], "layout": {"title": {"text": "S.E.R 四象限矩阵", "font": {"size": 14}}, "xaxis": {"title": {"text": "E (获客效率)"}, "zeroline": false, "showgrid": false, "showline": true}, "yaxis": {"title": {"text": "R (产出效率)"}, "zeroline": false, "showgrid": false, "showline": true}, "showlegend": true, "legend": {"x": 0, "y": 1.15, "orientation": "h"}, "shapes": [{"type": "line", "x0": 1, "x1": 1, "y0": 0.3, "y1": 2.0, "line": {"color": "#64748b", "width": 1.5, "dash": "dash"}}, {"type": "line", "x0": 0, "x1": 4, "y0": 1, "y1": 1, "line": {"color": "#64748b", "width": 1.5, "dash": "dash"}}], "annotations": [{"x": 0.3, "y": 1.9, "text": "💰 Profit", "showarrow": false, "font": {"size": 11, "color": "#10b981"}}, {"x": 2.5, "y": 1.9, "text": "⭐ Star", "showarrow": false, "font": {"size": 11, "color": "#f59e0b"}}, {"x": 0.3, "y": 0.4, "text": "⚠️ Trap", "showarrow": false, "font": {"size": 11, "color": "#ef4444"}}, {"x": 2.5, "y": 0.4, "text": "🚦 Traffic", "showarrow": false, "font": {"size": 11, "color": "#3b82f6"}}]}},true);</script>
+<div class="table-wrapper"><div class="table-title">📋 L3 类目全景表</div><table><thead><tr><th>#</th><th>类目</th><th>商品数</th><th>销量</th><th>GMV (₫)</th><th>GMV%</th><th>均价</th><th>E值</th><th>R值</th><th>象限</th><th>店铺数</th><th>品牌数</th></tr></thead><tbody>
+<tr><td>1</td><td>吹风机</td><td>244</td><td>147,185</td><td>₫41.0B</td><td>100.0%</td><td>₫986K</td><td>1.00</td><td>1.00</td><td>⭐ Star</td><td>137</td><td>70</td></tr>
+</tbody></table></div>
+</div>
+</div></div>
+<div data-lang="en"><div class="container">
+<div class="section"><h2 class="section-title">📊 Market Overview & L3 Category Distribution</h2>
+<div class="section-summary">Hair Dryers covers 1 L3 subcategories. Hair Dryers leads with ₫41.0B (100.0%) GMV.</div>
+<div class="charts-grid"><div class="chart-wrapper"><div id="pie_en" class="plotly-chart"></div></div></div>
+<script>renderPlotly("pie_en",{"data": [{"type": "pie", "labels": ["Hair Dryers"], "values": [100.0], "hole": 0.45, "marker": {"colors": ["#6366f1"]}, "textposition": "inside", "textinfo": "label+percent", "textfont": {"size": 10}}], "layout": {"title": {"text": "L3 GMV Share", "font": {"size": 14}}, "showlegend": false}},true);</script>
+<div class="charts-grid"><div class="chart-wrapper"><div id="bar_en" class="plotly-chart"></div></div></div>
+<script>renderPlotly("bar_en",{"data": [{"type": "bar", "x": ["Hair Dryers"], "y": [100.0], "name": "Products%", "marker": {"color": "#6366f1"}}, {"type": "bar", "x": ["Hair Dryers"], "y": [100.0], "name": "Sales%", "marker": {"color": "#8b5cf6"}}, {"type": "bar", "x": ["Hair Dryers"], "y": [100.0], "name": "GMV%", "marker": {"color": "#ec4899"}}], "layout": {"title": {"text": "L3 Triple Comparison (Products/Sales/GMV)", "font": {"size": 14}}, "barmode": "group", "xaxis": {"tickangle": -30, "tickfont": {"size": 10}}, "yaxis": {"title": {"text": "%"}}, "legend": {"x": 0, "y": 1.15, "orientation": "h"}, "bargap": 0.25}},true);</script>
+<div class="charts-grid"><div class="chart-wrapper"><div id="ser_en" class="plotly-chart"></div></div></div>
+<script>renderPlotly("ser_en",{"data": [{"type": "scatter", "mode": "markers+text", "name": "⭐ Star", "x": [1.0], "y": [1.0], "text": ["Hair Dryers"], "textposition": "top center", "textfont": {"size": 9}, "marker": {"size": [50], "color": "#f59e0b", "opacity": 0.8}, "hovertemplate": "<b>%{text}</b><br>E=%{x:.2f} R=%{y:.2f}<extra>⭐ Star</extra>"}], "layout": {"title": {"text": "S.E.R Quadrant Matrix", "font": {"size": 14}}, "xaxis": {"title": {"text": "E (Acquisition Efficiency)"}, "zeroline": false, "showgrid": false, "showline": true}, "yaxis": {"title": {"text": "R (Revenue Efficiency)"}, "zeroline": false, "showgrid": false, "showline": true}, "showlegend": true, "legend": {"x": 0, "y": 1.15, "orientation": "h"}, "shapes": [{"type": "line", "x0": 1, "x1": 1, "y0": 0.3, "y1": 2.0, "line": {"color": "#64748b", "width": 1.5, "dash": "dash"}}, {"type": "line", "x0": 0, "x1": 4, "y0": 1, "y1": 1, "line": {"color": "#64748b", "width": 1.5, "dash": "dash"}}], "annotations": [{"x": 0.3, "y": 1.9, "text": "💰 Profit", "showarrow": false, "font": {"size": 11, "color": "#10b981"}}, {"x": 2.5, "y": 1.9, "text": "⭐ Star", "showarrow": false, "font": {"size": 11, "color": "#f59e0b"}}, {"x": 0.3, "y": 0.4, "text": "⚠️ Trap", "showarrow": false, "font": {"size": 11, "color": "#ef4444"}}, {"x": 2.5, "y": 0.4, "text": "🚦 Traffic", "showarrow": false, "font": {"size": 11, "color": "#3b82f6"}}]}},true);</script>
+<div class="table-wrapper"><div class="table-title">📋 L3 Category Overview Table</div><table><thead><tr><th>#</th><th>Category</th><th>Products</th><th>Sold</th><th>GMV (₫)</th><th>GMV%</th><th>Avg Price</th><th>E</th><th>R</th><th>Quadrant</th><th>Shops</th><th>Brands</th></tr></thead><tbody>
+<tr><td>1</td><td>Hair Dryers</td><td>244</td><td>147,185</td><td>₫41.0B</td><td>100.0%</td><td>₫986K</td><td>1.00</td><td>1.00</td><td>⭐ Star</td><td>137</td><td>70</td></tr>
+</tbody></table></div>
+</div>
+</div></div>
+<div data-lang="zh"><div class="container">
+<div class="section"><h2 class="section-title">🏪 店铺排行榜 Top 15</h2>
+<div class="section-summary">Top 10 店铺合计占类目 GMV 的 64.7%。</div>
+<div class="chart-wrapper" style="margin-bottom:16px"><div id="shop_bar_zh" class="plotly-chart"></div></div>
+<script>renderPlotly("shop_bar_zh",{"data": [{"type": "bar", "x": ["Dr.flash-VN", "CWELL Vietnam", "Deko Việt Nam Store", "AnAn 2023", "Min.GiaDung.Shop", "Masuto Beauty Care", "Dyson Vietnam", "Outlet discount brand stores", "JETZT MALL", "Camy Online Store", "GAABOR", "Movie Legend Máy Chiếu", "Cường Anh - đồ gia dụng", "COPCOP Việt Nam", "lixibox vietnam"], "y": [7.8, 7.7, 1.7, 1.7, 1.6, 1.6, 1.3, 1.1, 1.1, 1.0, 0.9, 0.9, 0.7, 0.6, 0.4], "marker": {"color": ["#6366f1", "#8b5cf6", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#14b8a6", "#f97316", "#a855f7", "#3b82f6", "#84cc16", "#f43f5e", "#22d3ee", "#facc15"]}}], "layout": {"title": {"text": "店铺 GMV 排行 (₫B)", "font": {"size": 14}}, "xaxis": {"tickangle": -45, "tickfont": {"size": 9}}, "yaxis": {"title": {"text": "₫ Billion"}}, "bargap": 0.3}},true);</script>
+<div class="table-wrapper"><table><thead><tr><th>#</th><th>店铺名</th><th>GMV</th><th>GMV%</th><th>销量</th><th>商品数</th><th>均价</th><th>品牌数</th></tr></thead><tbody>
+<tr><td>1</td><td>Dr.flash-VN</td><td>₫7.8B</td><td>18.9%</td><td>16.0K</td><td>6</td><td>₫490K</td><td>1</td></tr>
+<tr><td>2</td><td>CWELL Vietnam</td><td>₫7.7B</td><td>18.8%</td><td>34.1K</td><td>12</td><td>₫339K</td><td>1</td></tr>
+<tr><td>3</td><td>Deko Việt Nam Store</td><td>₫1.7B</td><td>4.2%</td><td>4.0K</td><td>2</td><td>₫492K</td><td>1</td></tr>
+<tr><td>4</td><td>AnAn 2023</td><td>₫1.7B</td><td>4.1%</td><td>6.9K</td><td>2</td><td>₫287K</td><td>0</td></tr>
+<tr><td>5</td><td>Min.GiaDung.Shop</td><td>₫1.6B</td><td>3.9%</td><td>16.9K</td><td>1</td><td>₫89K</td><td>0</td></tr>
+<tr><td>6</td><td>Masuto Beauty Care</td><td>₫1.6B</td><td>3.8%</td><td>1.3K</td><td>9</td><td>₫1.2M</td><td>1</td></tr>
+<tr><td>7</td><td>Dyson Vietnam</td><td>₫1.3B</td><td>3.2%</td><td>107</td><td>4</td><td>₫11.6M</td><td>1</td></tr>
+<tr><td>8</td><td>Outlet discount brand stores</td><td>₫1.1B</td><td>2.8%</td><td>3.3K</td><td>3</td><td>₫332K</td><td>1</td></tr>
+<tr><td>9</td><td>JETZT MALL</td><td>₫1.1B</td><td>2.6%</td><td>708</td><td>3</td><td>₫1.2M</td><td>1</td></tr>
+<tr><td>10</td><td>Camy Online Store</td><td>₫1.0B</td><td>2.6%</td><td>1.9K</td><td>3</td><td>₫600K</td><td>1</td></tr>
+<tr><td>11</td><td>GAABOR</td><td>₫920.2M</td><td>2.2%</td><td>4.4K</td><td>4</td><td>₫514K</td><td>1</td></tr>
+<tr><td>12</td><td>Movie Legend Máy Chiếu</td><td>₫861.3M</td><td>2.1%</td><td>1.6K</td><td>2</td><td>₫552K</td><td>1</td></tr>
+<tr><td>13</td><td>Cường Anh - đồ gia dụng</td><td>₫650.8M</td><td>1.6%</td><td>6.6K</td><td>1</td><td>₫97K</td><td>0</td></tr>
+<tr><td>14</td><td>COPCOP Việt Nam</td><td>₫592.7M</td><td>1.4%</td><td>894</td><td>1</td><td>₫679K</td><td>1</td></tr>
+<tr><td>15</td><td>lixibox vietnam</td><td>₫413.1M</td><td>1.0%</td><td>184</td><td>4</td><td>₫3.3M</td><td>1</td></tr>
+</tbody></table></div></div>
+<div class="section"><h2 class="section-title">🏭 品牌排行榜 Top 15</h2>
+<div class="section-summary">Top 5 品牌合计占类目 GMV 的 49.2%。</div>
+<div class="chart-wrapper" style="margin-bottom:16px"><div id="brand_bar_zh" class="plotly-chart"></div></div>
+<script>renderPlotly("brand_bar_zh",{"data": [{"type": "bar", "x": ["Drflash", "Cwell", "Masuto", "Metis", "Dyson", "Billow", "Jetzt", "Camy", "Gaabor", "Supersonic", "Movie Legend", "Copcop", "Halio", "Panasonics", "Azanuzo"], "y": [7.8, 7.7, 1.7, 1.7, 1.3, 1.1, 1.1, 1.0, 0.9, 0.8, 0.8, 0.6, 0.5, 0.4, 0.4], "marker": {"color": ["#6366f1", "#8b5cf6", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#14b8a6", "#f97316", "#a855f7", "#3b82f6", "#84cc16", "#f43f5e", "#22d3ee", "#facc15"]}}], "layout": {"title": {"text": "品牌 GMV 排行 (₫B)", "font": {"size": 14}}, "xaxis": {"tickangle": -45, "tickfont": {"size": 9}}, "yaxis": {"title": {"text": "₫ Billion"}}, "bargap": 0.3}},true);</script>
+<div class="table-wrapper"><table><thead><tr><th>#</th><th>品牌</th><th>GMV</th><th>GMV%</th><th>销量</th><th>商品数</th><th>均价</th></tr></thead><tbody>
+<tr><td>1</td><td>Drflash</td><td>₫7.8B</td><td>18.9%</td><td>16.0K</td><td>6</td><td>₫490K</td></tr>
+<tr><td>2</td><td>Cwell</td><td>₫7.7B</td><td>18.8%</td><td>34.1K</td><td>12</td><td>₫339K</td></tr>
+<tr><td>3</td><td>Masuto</td><td>₫1.7B</td><td>4.2%</td><td>1.4K</td><td>11</td><td>₫1.3M</td></tr>
+<tr><td>4</td><td>Metis</td><td>₫1.7B</td><td>4.2%</td><td>4.0K</td><td>2</td><td>₫492K</td></tr>
+<tr><td>5</td><td>Dyson</td><td>₫1.3B</td><td>3.2%</td><td>107</td><td>4</td><td>₫11.6M</td></tr>
+<tr><td>6</td><td>Billow</td><td>₫1.1B</td><td>2.8%</td><td>3.3K</td><td>3</td><td>₫332K</td></tr>
+<tr><td>7</td><td>Jetzt</td><td>₫1.1B</td><td>2.8%</td><td>822</td><td>6</td><td>₫1.1M</td></tr>
+<tr><td>8</td><td>Camy</td><td>₫1.0B</td><td>2.6%</td><td>1.9K</td><td>3</td><td>₫600K</td></tr>
+<tr><td>9</td><td>Gaabor</td><td>₫920.2M</td><td>2.2%</td><td>4.4K</td><td>4</td><td>₫514K</td></tr>
+<tr><td>10</td><td>Supersonic</td><td>₫811.4M</td><td>2.0%</td><td>2.0K</td><td>3</td><td>₫513K</td></tr>
+<tr><td>11</td><td>Movie Legend</td><td>₫790.5M</td><td>1.9%</td><td>1.5K</td><td>1</td><td>₫575K</td></tr>
+<tr><td>12</td><td>Copcop</td><td>₫592.7M</td><td>1.4%</td><td>894</td><td>1</td><td>₫679K</td></tr>
+<tr><td>13</td><td>Halio</td><td>₫454.1M</td><td>1.1%</td><td>201</td><td>6</td><td>₫3.0M</td></tr>
+<tr><td>14</td><td>Panasonics</td><td>₫437.0M</td><td>1.1%</td><td>1.3K</td><td>8</td><td>₫1.6M</td></tr>
+<tr><td>15</td><td>Azanuzo</td><td>₫397.4M</td><td>1.0%</td><td>1.0K</td><td>2</td><td>₫350K</td></tr>
+</tbody></table></div></div>
+</div></div>
+<div data-lang="en"><div class="container">
+<div class="section"><h2 class="section-title">🏪 Top 15 Shops</h2>
+<div class="section-summary">Top 10 shops account for 64.7% of category GMV.</div>
+<div class="chart-wrapper" style="margin-bottom:16px"><div id="shop_bar_en" class="plotly-chart"></div></div>
+<script>renderPlotly("shop_bar_en",{"data": [{"type": "bar", "x": ["Dr.flash-VN", "CWELL Vietnam", "Deko Việt Nam Store", "AnAn 2023", "Min.GiaDung.Shop", "Masuto Beauty Care", "Dyson Vietnam", "Outlet discount brand stores", "JETZT MALL", "Camy Online Store", "GAABOR", "Movie Legend Máy Chiếu", "Cường Anh - đồ gia dụng", "COPCOP Việt Nam", "lixibox vietnam"], "y": [7.8, 7.7, 1.7, 1.7, 1.6, 1.6, 1.3, 1.1, 1.1, 1.0, 0.9, 0.9, 0.7, 0.6, 0.4], "marker": {"color": ["#6366f1", "#8b5cf6", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#14b8a6", "#f97316", "#a855f7", "#3b82f6", "#84cc16", "#f43f5e", "#22d3ee", "#facc15"]}}], "layout": {"title": {"text": "Shop GMV Ranking (₫B)", "font": {"size": 14}}, "xaxis": {"tickangle": -45, "tickfont": {"size": 9}}, "yaxis": {"title": {"text": "₫ Billion"}}, "bargap": 0.3}},true);</script>
+<div class="table-wrapper"><table><thead><tr><th>#</th><th>Shop</th><th>GMV</th><th>GMV%</th><th>Sold</th><th>Products</th><th>Avg Price</th><th>Brands</th></tr></thead><tbody>
+<tr><td>1</td><td>Dr.flash-VN</td><td>₫7.8B</td><td>18.9%</td><td>16.0K</td><td>6</td><td>₫490K</td><td>1</td></tr>
+<tr><td>2</td><td>CWELL Vietnam</td><td>₫7.7B</td><td>18.8%</td><td>34.1K</td><td>12</td><td>₫339K</td><td>1</td></tr>
+<tr><td>3</td><td>Deko Việt Nam Store</td><td>₫1.7B</td><td>4.2%</td><td>4.0K</td><td>2</td><td>₫492K</td><td>1</td></tr>
+<tr><td>4</td><td>AnAn 2023</td><td>₫1.7B</td><td>4.1%</td><td>6.9K</td><td>2</td><td>₫287K</td><td>0</td></tr>
+<tr><td>5</td><td>Min.GiaDung.Shop</td><td>₫1.6B</td><td>3.9%</td><td>16.9K</td><td>1</td><td>₫89K</td><td>0</td></tr>
+<tr><td>6</td><td>Masuto Beauty Care</td><td>₫1.6B</td><td>3.8%</td><td>1.3K</td><td>9</td><td>₫1.2M</td><td>1</td></tr>
+<tr><td>7</td><td>Dyson Vietnam</td><td>₫1.3B</td><td>3.2%</td><td>107</td><td>4</td><td>₫11.6M</td><td>1</td></tr>
+<tr><td>8</td><td>Outlet discount brand stores</td><td>₫1.1B</td><td>2.8%</td><td>3.3K</td><td>3</td><td>₫332K</td><td>1</td></tr>
+<tr><td>9</td><td>JETZT MALL</td><td>₫1.1B</td><td>2.6%</td><td>708</td><td>3</td><td>₫1.2M</td><td>1</td></tr>
+<tr><td>10</td><td>Camy Online Store</td><td>₫1.0B</td><td>2.6%</td><td>1.9K</td><td>3</td><td>₫600K</td><td>1</td></tr>
+<tr><td>11</td><td>GAABOR</td><td>₫920.2M</td><td>2.2%</td><td>4.4K</td><td>4</td><td>₫514K</td><td>1</td></tr>
+<tr><td>12</td><td>Movie Legend Máy Chiếu</td><td>₫861.3M</td><td>2.1%</td><td>1.6K</td><td>2</td><td>₫552K</td><td>1</td></tr>
+<tr><td>13</td><td>Cường Anh - đồ gia dụng</td><td>₫650.8M</td><td>1.6%</td><td>6.6K</td><td>1</td><td>₫97K</td><td>0</td></tr>
+<tr><td>14</td><td>COPCOP Việt Nam</td><td>₫592.7M</td><td>1.4%</td><td>894</td><td>1</td><td>₫679K</td><td>1</td></tr>
+<tr><td>15</td><td>lixibox vietnam</td><td>₫413.1M</td><td>1.0%</td><td>184</td><td>4</td><td>₫3.3M</td><td>1</td></tr>
+</tbody></table></div></div>
+<div class="section"><h2 class="section-title">🏭 Top 15 Brands</h2>
+<div class="section-summary">Top 5 brands account for 49.2% of category GMV.</div>
+<div class="chart-wrapper" style="margin-bottom:16px"><div id="brand_bar_en" class="plotly-chart"></div></div>
+<script>renderPlotly("brand_bar_en",{"data": [{"type": "bar", "x": ["Drflash", "Cwell", "Masuto", "Metis", "Dyson", "Billow", "Jetzt", "Camy", "Gaabor", "Supersonic", "Movie Legend", "Copcop", "Halio", "Panasonics", "Azanuzo"], "y": [7.8, 7.7, 1.7, 1.7, 1.3, 1.1, 1.1, 1.0, 0.9, 0.8, 0.8, 0.6, 0.5, 0.4, 0.4], "marker": {"color": ["#6366f1", "#8b5cf6", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#14b8a6", "#f97316", "#a855f7", "#3b82f6", "#84cc16", "#f43f5e", "#22d3ee", "#facc15"]}}], "layout": {"title": {"text": "Brand GMV Ranking (₫B)", "font": {"size": 14}}, "xaxis": {"tickangle": -45, "tickfont": {"size": 9}}, "yaxis": {"title": {"text": "₫ Billion"}}, "bargap": 0.3}},true);</script>
+<div class="table-wrapper"><table><thead><tr><th>#</th><th>Brand</th><th>GMV</th><th>GMV%</th><th>Sold</th><th>Products</th><th>Avg Price</th></tr></thead><tbody>
+<tr><td>1</td><td>Drflash</td><td>₫7.8B</td><td>18.9%</td><td>16.0K</td><td>6</td><td>₫490K</td></tr>
+<tr><td>2</td><td>Cwell</td><td>₫7.7B</td><td>18.8%</td><td>34.1K</td><td>12</td><td>₫339K</td></tr>
+<tr><td>3</td><td>Masuto</td><td>₫1.7B</td><td>4.2%</td><td>1.4K</td><td>11</td><td>₫1.3M</td></tr>
+<tr><td>4</td><td>Metis</td><td>₫1.7B</td><td>4.2%</td><td>4.0K</td><td>2</td><td>₫492K</td></tr>
+<tr><td>5</td><td>Dyson</td><td>₫1.3B</td><td>3.2%</td><td>107</td><td>4</td><td>₫11.6M</td></tr>
+<tr><td>6</td><td>Billow</td><td>₫1.1B</td><td>2.8%</td><td>3.3K</td><td>3</td><td>₫332K</td></tr>
+<tr><td>7</td><td>Jetzt</td><td>₫1.1B</td><td>2.8%</td><td>822</td><td>6</td><td>₫1.1M</td></tr>
+<tr><td>8</td><td>Camy</td><td>₫1.0B</td><td>2.6%</td><td>1.9K</td><td>3</td><td>₫600K</td></tr>
+<tr><td>9</td><td>Gaabor</td><td>₫920.2M</td><td>2.2%</td><td>4.4K</td><td>4</td><td>₫514K</td></tr>
+<tr><td>10</td><td>Supersonic</td><td>₫811.4M</td><td>2.0%</td><td>2.0K</td><td>3</td><td>₫513K</td></tr>
+<tr><td>11</td><td>Movie Legend</td><td>₫790.5M</td><td>1.9%</td><td>1.5K</td><td>1</td><td>₫575K</td></tr>
+<tr><td>12</td><td>Copcop</td><td>₫592.7M</td><td>1.4%</td><td>894</td><td>1</td><td>₫679K</td></tr>
+<tr><td>13</td><td>Halio</td><td>₫454.1M</td><td>1.1%</td><td>201</td><td>6</td><td>₫3.0M</td></tr>
+<tr><td>14</td><td>Panasonics</td><td>₫437.0M</td><td>1.1%</td><td>1.3K</td><td>8</td><td>₫1.6M</td></tr>
+<tr><td>15</td><td>Azanuzo</td><td>₫397.4M</td><td>1.0%</td><td>1.0K</td><td>2</td><td>₫350K</td></tr>
+</tbody></table></div></div>
+</div></div>
+<div data-lang="zh"><div class="container">
+<div class="section"><h2 class="section-title">🔍 L3 类目深度分析</h2>
+<div class="section-summary">按 GMV 排序展示前 15 个子类目的详细分析，包含品牌分布、价格区间、热销商品等。</div>
+<details class="l3-category" open><summary>1. 吹风机 <span style="font-size:.8rem;color:var(--text-secondary);margin-left:auto">244 SKUs · 147,185 sold · ₫41.0B</span></summary>
+<div class="l3-content">
+<div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(100px,1fr))">
+<div class="kpi-card" style="padding:10px 8px"><div class="icon" style="font-size:1.1rem">📦</div><div class="label" style="font-size:.65rem">商品</div><div class="value" style="font-size:1rem">244</div></div>
+<div class="kpi-card" style="padding:10px 8px"><div class="icon" style="font-size:1.1rem">🛒</div><div class="label" style="font-size:.65rem">销量</div><div class="value" style="font-size:1rem">147.2K</div></div>
+<div class="kpi-card" style="padding:10px 8px"><div class="icon" style="font-size:1.1rem">💰</div><div class="label" style="font-size:.65rem">GMV</div><div class="value" style="font-size:1rem">₫41.0B</div></div>
+<div class="kpi-card" style="padding:10px 8px"><div class="icon" style="font-size:1.1rem">📊</div><div class="label" style="font-size:.65rem">GMV%</div><div class="value" style="font-size:1rem">100.0%</div></div>
+<div class="kpi-card" style="padding:10px 8px"><div class="icon" style="font-size:1.1rem">🎯</div><div class="label" style="font-size:.65rem">E</div><div class="value" style="font-size:1rem">1.00</div></div>
+<div class="kpi-card" style="padding:10px 8px"><div class="icon" style="font-size:1.1rem">📈</div><div class="label" style="font-size:.65rem">R</div><div class="value" style="font-size:1rem">1.00</div></div>
+<div class="kpi-card" style="padding:10px 8px"><div class="icon" style="font-size:1.1rem">🏷️</div><div class="label" style="font-size:.65rem">象限</div><div class="value" style="font-size:1rem">⭐ Star</div></div>
+<div class="kpi-card" style="padding:10px 8px"><div class="icon" style="font-size:1.1rem">🏪</div><div class="label" style="font-size:.65rem">店铺</div><div class="value" style="font-size:1rem">137</div></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start">
+<div class="chart-wrapper"><div id="cat_brand_0_zh" class="plotly-chart" style="min-height:350px"></div></div>
+<script>renderPlotly("cat_brand_0_zh",{"data": [{"type": "pie", "labels": ["No Brand", "Drflash", "Cwell", "Masuto", "Metis", "Dyson", "Billow", "Jetzt", "Others"], "values": [20.1, 18.9, 18.8, 4.2, 4.2, 3.2, 2.8, 2.8, 25.0], "hole": 0.4, "marker": {"colors": ["#6366f1", "#8b5cf6", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#14b8a6", "#f97316"]}, "textinfo": "label+percent", "textfont": {"size": 10}, "textposition": "outside"}], "layout": {"title": {"text": "品牌 GMV 占比", "font": {"size": 12}}, "height": 350, "showlegend": false}},true);</script>
+<div class="table-wrapper" style="margin-bottom:0"><table><thead><tr><th>品牌</th><th>GMV</th><th>销量</th><th>商品</th></tr></thead><tbody>
+<tr><td>No Brand</td><td>₫8.3B</td><td>62.0K</td><td>79</td></tr>
+<tr><td>Drflash</td><td>₫7.8B</td><td>16.0K</td><td>6</td></tr>
+<tr><td>Cwell</td><td>₫7.7B</td><td>34.1K</td><td>12</td></tr>
+<tr><td>Masuto</td><td>₫1.7B</td><td>1.4K</td><td>11</td></tr>
+<tr><td>Metis</td><td>₫1.7B</td><td>4.0K</td><td>2</td></tr>
+<tr><td>Dyson</td><td>₫1.3B</td><td>107</td><td>4</td></tr>
+<tr><td>Billow</td><td>₫1.1B</td><td>3.3K</td><td>3</td></tr>
+<tr><td>Jetzt</td><td>₫1.1B</td><td>822</td><td>6</td></tr>
+</tbody></table></div>
+</div>
+<div class="chart-wrapper" style="margin-top:12px"><div id="cat_price_0_zh" class="plotly-chart" style="min-height:350px"></div></div>
+<script>renderPlotly("cat_price_0_zh",{"data": [{"type": "bar", "x": ["<200K", "200K-500K", "500K-1M", "1M-2M", "2M-5M", ">5M"], "y": [23.0, 37.7, 13.1, 14.3, 8.6, 3.3], "name": "Products%", "marker": {"color": "#10b981"}}, {"type": "bar", "x": ["<200K", "200K-500K", "500K-1M", "1M-2M", "2M-5M", ">5M"], "y": [50.6, 40.4, 6.7, 1.9, 0.4, 0.1], "name": "Sales%", "marker": {"color": "#06b6d4"}}, {"type": "bar", "x": ["<200K", "200K-500K", "500K-1M", "1M-2M", "2M-5M", ">5M"], "y": [20.7, 49.9, 14.1, 8.9, 3.0, 3.3], "name": "GMV%", "marker": {"color": "#6366f1"}}], "layout": {"title": {"text": "价格带分布", "font": {"size": 14}}, "barmode": "group", "xaxis": {"title": {"text": "Price Band (VND)"}, "tickfont": {"size": 11}}, "yaxis": {"title": {"text": "%"}}, "legend": {"x": 0, "y": 1.15, "orientation": "h"}}},true);</script>
+<div class="chart-wrapper" style="margin-top:12px"><div id="cat_bubble_0_zh" class="plotly-chart" style="min-height:400px"></div></div>
+<script>renderPlotly("cat_bubble_0_zh",{"data": [{"type": "scatter", "mode": "markers", "x": [498447.0, 215426.0, 313493.0, 408893.0, 89348.0, 520597.0, 138377.0, 334352.0, 245748.0, 1169184.0, 1604094.0, 558831.0, 190702.0, 477945.0, 383235.0, 574646.0, 198831.0, 97421.0, 3180000.0, 679310.0, 198107.0, 303361.0, 3180000.0, 835788.0, 402931.0, 820992.0, 331799.0, 555985.0, 329376.0, 408142.0, 437888.0, 78961.0, 1208660.0, 231988.0, 194019.0, 88117.0, 1362242.0, 2021547.0, 445438.0, 96735.0, 363518.0, 343154.0, 92208.0, 336002.0, 204025.0, 405529.0, 2133104.0, 3180000.0, 209585.0, 93402.0], "y": [10793.0, 8859.0, 5658.0, 3773.0, 16948.0, 2740.0, 8245.0, 3017.0, 4243.0, 830.0, 615.0, 1766.0, 4623.0, 1766.0, 2256.0, 1456.0, 3755.0, 6593.0, 49.0, 894.0, 2627.0, 1688.0, 31.0, 240.0, 958.0, 469.0, 931.0, 585.0, 815.0, 690.0, 577.0, 3396.0, 228.0, 1078.0, 1284.0, 3041.0, 173.0, 110.0, 540.0, 2385.0, 464.0, 609.0, 2209.0, 572.0, 932.0, 481.0, 91.0, 13.0, 737.0, 2127.0], "text": ["<b>  DR.FLASH  Máy sấy tóc 110.000 vòng qua</b><br>Price: 498,447 VND<br>Sold: 10,793", "<b> Máy sấy tóc gấp gọn CWELL 1800W 2 chiều</b><br>Price: 215,426 VND<br>Sold: 8,859", "<b> Máy sấy tóc công suất lớn 2500W cao cấp</b><br>Price: 313,493 VND<br>Sold: 5,658", "<b> Máy Sấy Tóc Ion Âm GODWELL 2 Chiều Nóng</b><br>Price: 408,893 VND<br>Sold: 3,773", "<b> Máy Sấy Tóc 2 Chiều Nóng Lạnh Công Suất</b><br>Price: 89,348 VND<br>Sold: 16,948", "<b>  DR.FLASH  Máy Sấy Tóc 110.000 RPM Bản </b><br>Price: 520,597 VND<br>Sold: 2,740", "<b> Máy sấy tóc mini gập gọn 1200W CWELL vớ</b><br>Price: 138,377 VND<br>Sold: 8,245", "<b> Bán hàng trên TikTok 3 năm đảm bảo chất</b><br>Price: 334,352 VND<br>Sold: 3,017", "<b> Máy sấy tóc CWELL tạo kiểu công suất lớ</b><br>Price: 245,748 VND<br>Sold: 4,243", "<b>  GIÁ LIVE SỐC  Máy Sấy Tóc Tạo Kiểu 5in</b><br>Price: 1,169,184 VND<br>Sold: 830", "<b>  FLASH SALE  Máy sấy tóc ion âm Jetzt C</b><br>Price: 1,604,094 VND<br>Sold: 615", "<b> Máy sấy tóc ion âm Camy Air Power 2 chi</b><br>Price: 558,831 VND<br>Sold: 1,766", "<b> Máy Sấy Tóc Thơm 3000W Sấy Tóc Thơm Tạo</b><br>Price: 190,702 VND<br>Sold: 4,623", "<b>  DR.FLASH  Máy sấy tóc 110.000 vòng qua</b><br>Price: 477,945 VND<br>Sold: 1,766", "<b> Máy Sấy Tóc Ion Âm 2025 2800W 3 Chế Độ </b><br>Price: 383,235 VND<br>Sold: 2,256", "<b>  MEGA SALE NGÀY ĐÔI 3.3  Máy Sấy Tóc 2 </b><br>Price: 574,646 VND<br>Sold: 1,456", "<b> Máy sấy tóc CWELL trendy 4 mùa 1200W 3 </b><br>Price: 198,831 VND<br>Sold: 3,755", "<b> Máy Sấy Tóc 2 Chiều Nóng Lạnh Nhanh Khô</b><br>Price: 97,421 VND<br>Sold: 6,593", "<b>  20H30 16.3: DYSON LIVESTREAM  Máy sấy </b><br>Price: 12,914,103 VND ⚠️<br>Sold: 49<br><i>(price beyond chart range)</i>", "<b> Máy Sấy Tóc Ion Âm Cao Cấp COPCOP Với 9</b><br>Price: 679,310 VND<br>Sold: 894", "<b> Gaabor | Máy sấy tóc 2 chiều nóng lạnh </b><br>Price: 198,107 VND<br>Sold: 2,627", "<b> Máy sấy tóc CWELL gu cá tính công suất </b><br>Price: 303,361 VND<br>Sold: 1,688", "<b>  20H30 10 & 11.3: DYSON LIVESTREAM  Máy</b><br>Price: 10,508,705 VND ⚠️<br>Sold: 31<br><i>(price beyond chart range)</i>", "<b> Máy sấy tóc 110.000 vòng quay tốc độ ca</b><br>Price: 835,788 VND<br>Sold: 240", "<b> Máy sấy tóc Super Sonic 2026 Nam Nữ tạo</b><br>Price: 402,931 VND<br>Sold: 958", "<b> 【GOOJODOQ Máy sấy tóc tốc ion âm GOOJOD</b><br>Price: 820,992 VND<br>Sold: 469", "<b> Máy Sấy Tóc Super Sonic Nam Nữ Tạo Kiểu</b><br>Price: 331,799 VND<br>Sold: 931", "<b> Máy Sấy Tóc AKUMA X7 Công Suất Lớn - Dà</b><br>Price: 555,985 VND<br>Sold: 585", "<b> Máy sấy tóc tốc độ cao chính hãng công </b><br>Price: 329,376 VND<br>Sold: 815", "<b> Máy sấy tóc CHUYÊN SALON công suất lớn </b><br>Price: 408,142 VND<br>Sold: 690", "<b>  DR.FLASH  Máy Sấy Tóc 110.000 RPM Bản </b><br>Price: 437,888 VND<br>Sold: 577", "<b> ￼Máy Sấy Tóc 2 Chiều Nóng Lạnh Công Suấ</b><br>Price: 78,961 VND<br>Sold: 3,396", "<b> Máy sấy tóc ion âm Masuto Skylon - BEST</b><br>Price: 1,208,660 VND<br>Sold: 228", "<b> SimplusVN Máy Sấy Tóc 2 Chiều Nóng Lạnh</b><br>Price: 231,988 VND<br>Sold: 1,078", "<b> Máy sấy tóc 2 chiều nóng lạnh Gaabor N1</b><br>Price: 194,019 VND<br>Sold: 1,284", "<b> Máy Sấy Tóc 2 Chiều Nóng Lạnh Máy Sấy T</b><br>Price: 88,117 VND<br>Sold: 3,041", "<b> EYSIN Máy Sấy Tóc THD21 - 4 Chế Độ Nhiệ</b><br>Price: 1,362,242 VND<br>Sold: 173", "<b> Máy Sấy Tóc Halio High Speed Ionic Hair</b><br>Price: 2,021,547 VND<br>Sold: 110", "<b> E42_Máy sấy 1 đầu loại cao cấp ion âm k</b><br>Price: 445,438 VND<br>Sold: 540", "<b> Máy sấy tóc  2 chiều nóng lạnh công suấ</b><br>Price: 96,735 VND<br>Sold: 2,385", "<b>  Độc quyền Hưng Everything  Máy Sấy tóc</b><br>Price: 363,518 VND<br>Sold: 464", "<b> D15 - Máy Sấy Tóc Ion Âm DRYON 110000rp</b><br>Price: 343,154 VND<br>Sold: 609", "<b> Máy Sấy Tóc Nóng Lạnh 2 Chiều Công Suất</b><br>Price: 92,208 VND<br>Sold: 2,209", "<b> Máy Sấy Tóc Ion Âm ANUZO 2 Chiều Nóng L</b><br>Price: 336,002 VND<br>Sold: 572", "<b> HES Máy Sấy Tóc Model 8090 Tạo Kiểu 2 C</b><br>Price: 204,025 VND<br>Sold: 932", "<b> Máy sấy tóc CWELL màn hình LED 2500W gi</b><br>Price: 405,529 VND<br>Sold: 481", "<b>  VOUCHER ĐỘC QUYỀN  Máy Sấy Tóc Tốc Độ </b><br>Price: 2,133,104 VND<br>Sold: 91", "<b>  20H30 16.3: DYSON LIVESTREAM   Không h</b><br>Price: 13,915,520 VND ⚠️<br>Sold: 13<br><i>(price beyond chart range)</i>", "<b> Máy sấy tóc gấp gọn HODEKT máy thổi khô</b><br>Price: 209,585 VND<br>Sold: 737", "<b>  Loại 1  Máy Sấy Tóc 2 Chiều Nóng Lạnh </b><br>Price: 93,402 VND<br>Sold: 2,127"], "customdata": ["https://www.tiktok.com/view/product/1730378504295581848", "https://www.tiktok.com/view/product/1729626919968541271", "https://www.tiktok.com/view/product/1729959789121473111", "https://www.tiktok.com/view/product/1731337343603738181", "https://www.tiktok.com/view/product/1729733961054652921", "https://www.tiktok.com/view/product/1731209469649324184", "https://www.tiktok.com/view/product/1729646535437355607", "https://www.tiktok.com/view/product/1732020820899367166", "https://www.tiktok.com/view/product/1729545456259271255", "https://www.tiktok.com/view/product/1730518382277724242", "https://www.tiktok.com/view/product/1731219931232765642", "https://www.tiktok.com/view/product/1731978123744545470", "https://www.tiktok.com/view/product/1730099939259746944", "https://www.tiktok.com/view/product/1731803095191029912", "https://www.tiktok.com/view/product/1733083410144134784", "https://www.tiktok.com/view/product/1732006186790520880", "https://www.tiktok.com/view/product/1729464193830455895", "https://www.tiktok.com/view/product/1730867603542804616", "https://www.tiktok.com/view/product/1733728365964002553", "https://www.tiktok.com/view/product/1733219540900283606", "https://www.tiktok.com/view/product/1729678748768766387", "https://www.tiktok.com/view/product/1732205219045345879", "https://www.tiktok.com/view/product/1729766867848104185", "https://www.tiktok.com/view/product/1731787631579793744", "https://www.tiktok.com/view/product/1729617268030212447", "https://www.tiktok.com/view/product/1731545765579164281", "https://www.tiktok.com/view/product/1733251520364708992", "https://www.tiktok.com/view/product/1731421674955049251", "https://www.tiktok.com/view/product/1733885846936586114", "https://www.tiktok.com/view/product/1731147727427111511", "https://www.tiktok.com/view/product/1730638972830451864", "https://www.tiktok.com/view/product/1730908400666380389", "https://www.tiktok.com/view/product/1730518388453115986", "https://www.tiktok.com/view/product/1729431640959650323", "https://www.tiktok.com/view/product/1731423648311511475", "https://www.tiktok.com/view/product/1729807304716815101", "https://www.tiktok.com/view/product/1731350960307997434", "https://www.tiktok.com/view/product/1730756967460735748", "https://www.tiktok.com/view/product/1732309901578504118", "https://www.tiktok.com/view/product/1729728479372937658", "https://www.tiktok.com/view/product/1733562775475160541", "https://www.tiktok.com/view/product/1733137584984392965", "https://www.tiktok.com/view/product/1731823522034846429", "https://www.tiktok.com/view/product/1733269035866031581", "https://www.tiktok.com/view/product/1729429296537373148", "https://www.tiktok.com/view/product/1731147835284556375", "https://www.tiktok.com/view/product/1731444779612802003", "https://www.tiktok.com/view/product/1732221912391387385", "https://www.tiktok.com/view/product/1730076399231732015", "https://www.tiktok.com/view/product/1730836411981990653"], "marker": {"size": [60, 21.466483293675765, 20.63759841065337, 18.225894316254134, 18.15349358314909, 14.881968843198434, 12.493277601324614, 11.746795177995343, 11.250265752569051, 11.156065666511834, 10.971207230340907, 10.947255506072578, 9.806450373193794, 9.691080544040291, 9.22389025795188, 8.98846017506808, 8.71286181796181, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8], "color": [5276886899.0, 1887936741.0, 1815037878.0, 1602933049.0, 1596565541.0, 1308841107.0, 1098760215.0, 1033108493.0, 989439666.0, 981154946.0, 964896995.0, 962790486.0, 862458825.0, 852312266.0, 811223761.0, 790518129.0, 766279773.0, 650789889.0, 611112973.0, 592662944.0, 533275432.0, 506444806.0, 389806785.0, 386400000.0, 358985622.0, 356321688.0, 320419014.0, 319449252.0, 280939540.0, 274703434.0, 271121208.0, 269756510.0, 265321968.0, 260923231.0, 255589657.0, 247022261.0, 230834666.0, 223127395.0, 214511722.0, 206887335.0, 203913630.0, 203346131.0, 194551978.0, 193442997.0, 188366547.0, 181196912.0, 175540547.0, 163943777.0, 161449396.0, 160600653.0], "colorscale": "Viridis", "showscale": true, "colorbar": {"title": "GMV"}}, "hovertemplate": "%{text}<extra></extra>"}], "layout": {"title": {"text": "热销商品 Top 50 (气泡=GMV)", "font": {"size": 14}}, "xaxis": {"title": {"text": "价格 (VND) (3 个商品 >3.0M)"}, "range": [0, 3360000.0000000005]}, "yaxis": {"title": {"text": "销量"}}}},true);</script>
+<div class="table-wrapper" style="margin-top:12px"><div class="table-title">📋 热销商品 Top 5</div><table><thead><tr><th>#</th><th>商品</th><th>品牌</th><th>店铺</th><th>价格</th><th>销量</th><th>GMV</th></tr></thead><tbody>
+<tr><td>1</td><td><a href="https://www.tiktok.com/view/product/1730378504295581848" target="_blank">  DR.FLASH  Máy sấy tóc 110.000 vòng quay tốc độ cao ph</a></td><td>Drflash</td><td>Dr.flash-VN</td><td>₫498K</td><td>10.8K</td><td>₫5.3B</td></tr>
+<tr><td>2</td><td><a href="https://www.tiktok.com/view/product/1729626919968541271" target="_blank"> Máy sấy tóc gấp gọn CWELL 1800W 2 chiều nóng & lạnh 3 </a></td><td>Cwell</td><td>CWELL Vietnam</td><td>₫215K</td><td>8.9K</td><td>₫1.9B</td></tr>
+<tr><td>3</td><td><a href="https://www.tiktok.com/view/product/1729959789121473111" target="_blank"> Máy sấy tóc công suất lớn 2500W cao cấp CWELL 6 chế độ</a></td><td>Cwell</td><td>CWELL Vietnam</td><td>₫313K</td><td>5.7K</td><td>₫1.8B</td></tr>
+<tr><td>4</td><td><a href="https://www.tiktok.com/view/product/1731337343603738181" target="_blank"> Máy Sấy Tóc Ion Âm GODWELL 2 Chiều Nóng Lạnh Chăm Sóc </a></td><td>Metis</td><td>Deko Việt Nam Store</td><td>₫409K</td><td>3.8K</td><td>₫1.6B</td></tr>
+<tr><td>5</td><td><a href="https://www.tiktok.com/view/product/1729733961054652921" target="_blank"> Máy Sấy Tóc 2 Chiều Nóng Lạnh Công Suất Lớn 2000W Nhan</a></td><td>None</td><td>Min.GiaDung.Shop</td><td>₫89K</td><td>16.9K</td><td>₫1.6B</td></tr>
+</tbody></table></div>
+</div></details>
+</div>
+<div class="report-footer">
+<p>本报告由 BlueStone ECD 数据分析系统自动生成</p>
+<p>数据来源: Metric.vn · TikTok 越南站 · 吹风机类目</p>
+<p>分析范围: 2026-02-15 ~ 2026-03-16 · 244 商品</p>
+<p style="margin-top:8px;opacity:.6">BlueStone E-Commerce Division © 2026</p>
+</div>
+</div></div>
+<div data-lang="en"><div class="container">
+<div class="section"><h2 class="section-title">🔍 L3 Category Deep Dives</h2>
+<div class="section-summary">Top 15 subcategories by GMV with brand distribution, price range, and best sellers.</div>
+<details class="l3-category" open><summary>1. Hair Dryers <span style="font-size:.8rem;color:var(--text-secondary);margin-left:auto">244 SKUs · 147,185 sold · ₫41.0B</span></summary>
+<div class="l3-content">
+<div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(100px,1fr))">
+<div class="kpi-card" style="padding:10px 8px"><div class="icon" style="font-size:1.1rem">📦</div><div class="label" style="font-size:.65rem">Products</div><div class="value" style="font-size:1rem">244</div></div>
+<div class="kpi-card" style="padding:10px 8px"><div class="icon" style="font-size:1.1rem">🛒</div><div class="label" style="font-size:.65rem">Sold</div><div class="value" style="font-size:1rem">147.2K</div></div>
+<div class="kpi-card" style="padding:10px 8px"><div class="icon" style="font-size:1.1rem">💰</div><div class="label" style="font-size:.65rem">GMV</div><div class="value" style="font-size:1rem">₫41.0B</div></div>
+<div class="kpi-card" style="padding:10px 8px"><div class="icon" style="font-size:1.1rem">📊</div><div class="label" style="font-size:.65rem">GMV%</div><div class="value" style="font-size:1rem">100.0%</div></div>
+<div class="kpi-card" style="padding:10px 8px"><div class="icon" style="font-size:1.1rem">🎯</div><div class="label" style="font-size:.65rem">E</div><div class="value" style="font-size:1rem">1.00</div></div>
+<div class="kpi-card" style="padding:10px 8px"><div class="icon" style="font-size:1.1rem">📈</div><div class="label" style="font-size:.65rem">R</div><div class="value" style="font-size:1rem">1.00</div></div>
+<div class="kpi-card" style="padding:10px 8px"><div class="icon" style="font-size:1.1rem">🏷️</div><div class="label" style="font-size:.65rem">Quadrant</div><div class="value" style="font-size:1rem">⭐ Star</div></div>
+<div class="kpi-card" style="padding:10px 8px"><div class="icon" style="font-size:1.1rem">🏪</div><div class="label" style="font-size:.65rem">Shops</div><div class="value" style="font-size:1rem">137</div></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start">
+<div class="chart-wrapper"><div id="cat_brand_0_en" class="plotly-chart" style="min-height:350px"></div></div>
+<script>renderPlotly("cat_brand_0_en",{"data": [{"type": "pie", "labels": ["No Brand", "Drflash", "Cwell", "Masuto", "Metis", "Dyson", "Billow", "Jetzt", "Others"], "values": [20.1, 18.9, 18.8, 4.2, 4.2, 3.2, 2.8, 2.8, 25.0], "hole": 0.4, "marker": {"colors": ["#6366f1", "#8b5cf6", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#14b8a6", "#f97316"]}, "textinfo": "label+percent", "textfont": {"size": 10}, "textposition": "outside"}], "layout": {"title": {"text": "Brand GMV Share", "font": {"size": 12}}, "height": 350, "showlegend": false}},true);</script>
+<div class="table-wrapper" style="margin-bottom:0"><table><thead><tr><th>Brand</th><th>GMV</th><th>Sold</th><th>Items</th></tr></thead><tbody>
+<tr><td>No Brand</td><td>₫8.3B</td><td>62.0K</td><td>79</td></tr>
+<tr><td>Drflash</td><td>₫7.8B</td><td>16.0K</td><td>6</td></tr>
+<tr><td>Cwell</td><td>₫7.7B</td><td>34.1K</td><td>12</td></tr>
+<tr><td>Masuto</td><td>₫1.7B</td><td>1.4K</td><td>11</td></tr>
+<tr><td>Metis</td><td>₫1.7B</td><td>4.0K</td><td>2</td></tr>
+<tr><td>Dyson</td><td>₫1.3B</td><td>107</td><td>4</td></tr>
+<tr><td>Billow</td><td>₫1.1B</td><td>3.3K</td><td>3</td></tr>
+<tr><td>Jetzt</td><td>₫1.1B</td><td>822</td><td>6</td></tr>
+</tbody></table></div>
+</div>
+<div class="chart-wrapper" style="margin-top:12px"><div id="cat_price_0_en" class="plotly-chart" style="min-height:350px"></div></div>
+<script>renderPlotly("cat_price_0_en",{"data": [{"type": "bar", "x": ["<200K", "200K-500K", "500K-1M", "1M-2M", "2M-5M", ">5M"], "y": [23.0, 37.7, 13.1, 14.3, 8.6, 3.3], "name": "Products%", "marker": {"color": "#10b981"}}, {"type": "bar", "x": ["<200K", "200K-500K", "500K-1M", "1M-2M", "2M-5M", ">5M"], "y": [50.6, 40.4, 6.7, 1.9, 0.4, 0.1], "name": "Sales%", "marker": {"color": "#06b6d4"}}, {"type": "bar", "x": ["<200K", "200K-500K", "500K-1M", "1M-2M", "2M-5M", ">5M"], "y": [20.7, 49.9, 14.1, 8.9, 3.0, 3.3], "name": "GMV%", "marker": {"color": "#6366f1"}}], "layout": {"title": {"text": "Price Band Distribution", "font": {"size": 14}}, "barmode": "group", "xaxis": {"title": {"text": "Price Band (VND)"}, "tickfont": {"size": 11}}, "yaxis": {"title": {"text": "%"}}, "legend": {"x": 0, "y": 1.15, "orientation": "h"}}},true);</script>
+<div class="chart-wrapper" style="margin-top:12px"><div id="cat_bubble_0_en" class="plotly-chart" style="min-height:400px"></div></div>
+<script>renderPlotly("cat_bubble_0_en",{"data": [{"type": "scatter", "mode": "markers", "x": [498447.0, 215426.0, 313493.0, 408893.0, 89348.0, 520597.0, 138377.0, 334352.0, 245748.0, 1169184.0, 1604094.0, 558831.0, 190702.0, 477945.0, 383235.0, 574646.0, 198831.0, 97421.0, 3180000.0, 679310.0, 198107.0, 303361.0, 3180000.0, 835788.0, 402931.0, 820992.0, 331799.0, 555985.0, 329376.0, 408142.0, 437888.0, 78961.0, 1208660.0, 231988.0, 194019.0, 88117.0, 1362242.0, 2021547.0, 445438.0, 96735.0, 363518.0, 343154.0, 92208.0, 336002.0, 204025.0, 405529.0, 2133104.0, 3180000.0, 209585.0, 93402.0], "y": [10793.0, 8859.0, 5658.0, 3773.0, 16948.0, 2740.0, 8245.0, 3017.0, 4243.0, 830.0, 615.0, 1766.0, 4623.0, 1766.0, 2256.0, 1456.0, 3755.0, 6593.0, 49.0, 894.0, 2627.0, 1688.0, 31.0, 240.0, 958.0, 469.0, 931.0, 585.0, 815.0, 690.0, 577.0, 3396.0, 228.0, 1078.0, 1284.0, 3041.0, 173.0, 110.0, 540.0, 2385.0, 464.0, 609.0, 2209.0, 572.0, 932.0, 481.0, 91.0, 13.0, 737.0, 2127.0], "text": ["<b>  DR.FLASH  Máy sấy tóc 110.000 vòng qua</b><br>Price: 498,447 VND<br>Sold: 10,793", "<b> Máy sấy tóc gấp gọn CWELL 1800W 2 chiều</b><br>Price: 215,426 VND<br>Sold: 8,859", "<b> Máy sấy tóc công suất lớn 2500W cao cấp</b><br>Price: 313,493 VND<br>Sold: 5,658", "<b> Máy Sấy Tóc Ion Âm GODWELL 2 Chiều Nóng</b><br>Price: 408,893 VND<br>Sold: 3,773", "<b> Máy Sấy Tóc 2 Chiều Nóng Lạnh Công Suất</b><br>Price: 89,348 VND<br>Sold: 16,948", "<b>  DR.FLASH  Máy Sấy Tóc 110.000 RPM Bản </b><br>Price: 520,597 VND<br>Sold: 2,740", "<b> Máy sấy tóc mini gập gọn 1200W CWELL vớ</b><br>Price: 138,377 VND<br>Sold: 8,245", "<b> Bán hàng trên TikTok 3 năm đảm bảo chất</b><br>Price: 334,352 VND<br>Sold: 3,017", "<b> Máy sấy tóc CWELL tạo kiểu công suất lớ</b><br>Price: 245,748 VND<br>Sold: 4,243", "<b>  GIÁ LIVE SỐC  Máy Sấy Tóc Tạo Kiểu 5in</b><br>Price: 1,169,184 VND<br>Sold: 830", "<b>  FLASH SALE  Máy sấy tóc ion âm Jetzt C</b><br>Price: 1,604,094 VND<br>Sold: 615", "<b> Máy sấy tóc ion âm Camy Air Power 2 chi</b><br>Price: 558,831 VND<br>Sold: 1,766", "<b> Máy Sấy Tóc Thơm 3000W Sấy Tóc Thơm Tạo</b><br>Price: 190,702 VND<br>Sold: 4,623", "<b>  DR.FLASH  Máy sấy tóc 110.000 vòng qua</b><br>Price: 477,945 VND<br>Sold: 1,766", "<b> Máy Sấy Tóc Ion Âm 2025 2800W 3 Chế Độ </b><br>Price: 383,235 VND<br>Sold: 2,256", "<b>  MEGA SALE NGÀY ĐÔI 3.3  Máy Sấy Tóc 2 </b><br>Price: 574,646 VND<br>Sold: 1,456", "<b> Máy sấy tóc CWELL trendy 4 mùa 1200W 3 </b><br>Price: 198,831 VND<br>Sold: 3,755", "<b> Máy Sấy Tóc 2 Chiều Nóng Lạnh Nhanh Khô</b><br>Price: 97,421 VND<br>Sold: 6,593", "<b>  20H30 16.3: DYSON LIVESTREAM  Máy sấy </b><br>Price: 12,914,103 VND ⚠️<br>Sold: 49<br><i>(price beyond chart range)</i>", "<b> Máy Sấy Tóc Ion Âm Cao Cấp COPCOP Với 9</b><br>Price: 679,310 VND<br>Sold: 894", "<b> Gaabor | Máy sấy tóc 2 chiều nóng lạnh </b><br>Price: 198,107 VND<br>Sold: 2,627", "<b> Máy sấy tóc CWELL gu cá tính công suất </b><br>Price: 303,361 VND<br>Sold: 1,688", "<b>  20H30 10 & 11.3: DYSON LIVESTREAM  Máy</b><br>Price: 10,508,705 VND ⚠️<br>Sold: 31<br><i>(price beyond chart range)</i>", "<b> Máy sấy tóc 110.000 vòng quay tốc độ ca</b><br>Price: 835,788 VND<br>Sold: 240", "<b> Máy sấy tóc Super Sonic 2026 Nam Nữ tạo</b><br>Price: 402,931 VND<br>Sold: 958", "<b> 【GOOJODOQ Máy sấy tóc tốc ion âm GOOJOD</b><br>Price: 820,992 VND<br>Sold: 469", "<b> Máy Sấy Tóc Super Sonic Nam Nữ Tạo Kiểu</b><br>Price: 331,799 VND<br>Sold: 931", "<b> Máy Sấy Tóc AKUMA X7 Công Suất Lớn - Dà</b><br>Price: 555,985 VND<br>Sold: 585", "<b> Máy sấy tóc tốc độ cao chính hãng công </b><br>Price: 329,376 VND<br>Sold: 815", "<b> Máy sấy tóc CHUYÊN SALON công suất lớn </b><br>Price: 408,142 VND<br>Sold: 690", "<b>  DR.FLASH  Máy Sấy Tóc 110.000 RPM Bản </b><br>Price: 437,888 VND<br>Sold: 577", "<b> ￼Máy Sấy Tóc 2 Chiều Nóng Lạnh Công Suấ</b><br>Price: 78,961 VND<br>Sold: 3,396", "<b> Máy sấy tóc ion âm Masuto Skylon - BEST</b><br>Price: 1,208,660 VND<br>Sold: 228", "<b> SimplusVN Máy Sấy Tóc 2 Chiều Nóng Lạnh</b><br>Price: 231,988 VND<br>Sold: 1,078", "<b> Máy sấy tóc 2 chiều nóng lạnh Gaabor N1</b><br>Price: 194,019 VND<br>Sold: 1,284", "<b> Máy Sấy Tóc 2 Chiều Nóng Lạnh Máy Sấy T</b><br>Price: 88,117 VND<br>Sold: 3,041", "<b> EYSIN Máy Sấy Tóc THD21 - 4 Chế Độ Nhiệ</b><br>Price: 1,362,242 VND<br>Sold: 173", "<b> Máy Sấy Tóc Halio High Speed Ionic Hair</b><br>Price: 2,021,547 VND<br>Sold: 110", "<b> E42_Máy sấy 1 đầu loại cao cấp ion âm k</b><br>Price: 445,438 VND<br>Sold: 540", "<b> Máy sấy tóc  2 chiều nóng lạnh công suấ</b><br>Price: 96,735 VND<br>Sold: 2,385", "<b>  Độc quyền Hưng Everything  Máy Sấy tóc</b><br>Price: 363,518 VND<br>Sold: 464", "<b> D15 - Máy Sấy Tóc Ion Âm DRYON 110000rp</b><br>Price: 343,154 VND<br>Sold: 609", "<b> Máy Sấy Tóc Nóng Lạnh 2 Chiều Công Suất</b><br>Price: 92,208 VND<br>Sold: 2,209", "<b> Máy Sấy Tóc Ion Âm ANUZO 2 Chiều Nóng L</b><br>Price: 336,002 VND<br>Sold: 572", "<b> HES Máy Sấy Tóc Model 8090 Tạo Kiểu 2 C</b><br>Price: 204,025 VND<br>Sold: 932", "<b> Máy sấy tóc CWELL màn hình LED 2500W gi</b><br>Price: 405,529 VND<br>Sold: 481", "<b>  VOUCHER ĐỘC QUYỀN  Máy Sấy Tóc Tốc Độ </b><br>Price: 2,133,104 VND<br>Sold: 91", "<b>  20H30 16.3: DYSON LIVESTREAM   Không h</b><br>Price: 13,915,520 VND ⚠️<br>Sold: 13<br><i>(price beyond chart range)</i>", "<b> Máy sấy tóc gấp gọn HODEKT máy thổi khô</b><br>Price: 209,585 VND<br>Sold: 737", "<b>  Loại 1  Máy Sấy Tóc 2 Chiều Nóng Lạnh </b><br>Price: 93,402 VND<br>Sold: 2,127"], "customdata": ["https://www.tiktok.com/view/product/1730378504295581848", "https://www.tiktok.com/view/product/1729626919968541271", "https://www.tiktok.com/view/product/1729959789121473111", "https://www.tiktok.com/view/product/1731337343603738181", "https://www.tiktok.com/view/product/1729733961054652921", "https://www.tiktok.com/view/product/1731209469649324184", "https://www.tiktok.com/view/product/1729646535437355607", "https://www.tiktok.com/view/product/1732020820899367166", "https://www.tiktok.com/view/product/1729545456259271255", "https://www.tiktok.com/view/product/1730518382277724242", "https://www.tiktok.com/view/product/1731219931232765642", "https://www.tiktok.com/view/product/1731978123744545470", "https://www.tiktok.com/view/product/1730099939259746944", "https://www.tiktok.com/view/product/1731803095191029912", "https://www.tiktok.com/view/product/1733083410144134784", "https://www.tiktok.com/view/product/1732006186790520880", "https://www.tiktok.com/view/product/1729464193830455895", "https://www.tiktok.com/view/product/1730867603542804616", "https://www.tiktok.com/view/product/1733728365964002553", "https://www.tiktok.com/view/product/1733219540900283606", "https://www.tiktok.com/view/product/1729678748768766387", "https://www.tiktok.com/view/product/1732205219045345879", "https://www.tiktok.com/view/product/1729766867848104185", "https://www.tiktok.com/view/product/1731787631579793744", "https://www.tiktok.com/view/product/1729617268030212447", "https://www.tiktok.com/view/product/1731545765579164281", "https://www.tiktok.com/view/product/1733251520364708992", "https://www.tiktok.com/view/product/1731421674955049251", "https://www.tiktok.com/view/product/1733885846936586114", "https://www.tiktok.com/view/product/1731147727427111511", "https://www.tiktok.com/view/product/1730638972830451864", "https://www.tiktok.com/view/product/1730908400666380389", "https://www.tiktok.com/view/product/1730518388453115986", "https://www.tiktok.com/view/product/1729431640959650323", "https://www.tiktok.com/view/product/1731423648311511475", "https://www.tiktok.com/view/product/1729807304716815101", "https://www.tiktok.com/view/product/1731350960307997434", "https://www.tiktok.com/view/product/1730756967460735748", "https://www.tiktok.com/view/product/1732309901578504118", "https://www.tiktok.com/view/product/1729728479372937658", "https://www.tiktok.com/view/product/1733562775475160541", "https://www.tiktok.com/view/product/1733137584984392965", "https://www.tiktok.com/view/product/1731823522034846429", "https://www.tiktok.com/view/product/1733269035866031581", "https://www.tiktok.com/view/product/1729429296537373148", "https://www.tiktok.com/view/product/1731147835284556375", "https://www.tiktok.com/view/product/1731444779612802003", "https://www.tiktok.com/view/product/1732221912391387385", "https://www.tiktok.com/view/product/1730076399231732015", "https://www.tiktok.com/view/product/1730836411981990653"], "marker": {"size": [60, 21.466483293675765, 20.63759841065337, 18.225894316254134, 18.15349358314909, 14.881968843198434, 12.493277601324614, 11.746795177995343, 11.250265752569051, 11.156065666511834, 10.971207230340907, 10.947255506072578, 9.806450373193794, 9.691080544040291, 9.22389025795188, 8.98846017506808, 8.71286181796181, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8], "color": [5276886899.0, 1887936741.0, 1815037878.0, 1602933049.0, 1596565541.0, 1308841107.0, 1098760215.0, 1033108493.0, 989439666.0, 981154946.0, 964896995.0, 962790486.0, 862458825.0, 852312266.0, 811223761.0, 790518129.0, 766279773.0, 650789889.0, 611112973.0, 592662944.0, 533275432.0, 506444806.0, 389806785.0, 386400000.0, 358985622.0, 356321688.0, 320419014.0, 319449252.0, 280939540.0, 274703434.0, 271121208.0, 269756510.0, 265321968.0, 260923231.0, 255589657.0, 247022261.0, 230834666.0, 223127395.0, 214511722.0, 206887335.0, 203913630.0, 203346131.0, 194551978.0, 193442997.0, 188366547.0, 181196912.0, 175540547.0, 163943777.0, 161449396.0, 160600653.0], "colorscale": "Viridis", "showscale": true, "colorbar": {"title": "GMV"}}, "hovertemplate": "%{text}<extra></extra>"}], "layout": {"title": {"text": "Top 50 Products (Bubble=GMV)", "font": {"size": 14}}, "xaxis": {"title": {"text": "Price (VND) (3 items >3.0M)"}, "range": [0, 3360000.0000000005]}, "yaxis": {"title": {"text": "Units Sold"}}}},true);</script>
+<div class="table-wrapper" style="margin-top:12px"><div class="table-title">📋 Top 5 Products</div><table><thead><tr><th>#</th><th>Product</th><th>Brand</th><th>Shop</th><th>Price</th><th>Sold</th><th>GMV</th></tr></thead><tbody>
+<tr><td>1</td><td><a href="https://www.tiktok.com/view/product/1730378504295581848" target="_blank">  DR.FLASH  Máy sấy tóc 110.000 vòng quay tốc độ cao ph</a></td><td>Drflash</td><td>Dr.flash-VN</td><td>₫498K</td><td>10.8K</td><td>₫5.3B</td></tr>
+<tr><td>2</td><td><a href="https://www.tiktok.com/view/product/1729626919968541271" target="_blank"> Máy sấy tóc gấp gọn CWELL 1800W 2 chiều nóng & lạnh 3 </a></td><td>Cwell</td><td>CWELL Vietnam</td><td>₫215K</td><td>8.9K</td><td>₫1.9B</td></tr>
+<tr><td>3</td><td><a href="https://www.tiktok.com/view/product/1729959789121473111" target="_blank"> Máy sấy tóc công suất lớn 2500W cao cấp CWELL 6 chế độ</a></td><td>Cwell</td><td>CWELL Vietnam</td><td>₫313K</td><td>5.7K</td><td>₫1.8B</td></tr>
+<tr><td>4</td><td><a href="https://www.tiktok.com/view/product/1731337343603738181" target="_blank"> Máy Sấy Tóc Ion Âm GODWELL 2 Chiều Nóng Lạnh Chăm Sóc </a></td><td>Metis</td><td>Deko Việt Nam Store</td><td>₫409K</td><td>3.8K</td><td>₫1.6B</td></tr>
+<tr><td>5</td><td><a href="https://www.tiktok.com/view/product/1729733961054652921" target="_blank"> Máy Sấy Tóc 2 Chiều Nóng Lạnh Công Suất Lớn 2000W Nhan</a></td><td>None</td><td>Min.GiaDung.Shop</td><td>₫89K</td><td>16.9K</td><td>₫1.6B</td></tr>
+</tbody></table></div>
+</div></details>
+</div>
+<div class="report-footer">
+<p>Report auto-generated by BlueStone ECD Data Analytics</p>
+<p>Source: Metric.vn · TikTok Vietnam · Hair Dryers</p>
+<p>Period: 2026-02-15 ~ 2026-03-16 · 244 products</p>
+<p style="margin-top:8px;opacity:.6">BlueStone E-Commerce Division © 2026</p>
+</div>
+</div></div>
+</body></html>
