@@ -5,52 +5,214 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BlueStone ECD — Market Research Reports</title>
     <style>
+        :root{
+            --bg:#0b1324;
+            --bg-glow:rgba(59,130,246,.16);
+            --panel:#172133;
+            --panel-soft:#1d2940;
+            --border:#2d3d5c;
+            --text:#f4f7fb;
+            --muted:#93a4bf;
+            --vn:#06b6d4;
+            --cn:#f59e0b;
+            --shopee:#fb7185;
+            --tiktok:#22d3ee;
+            --shadow:0 18px 44px rgba(3,10,24,.32);
+        }
         *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f172a;color:#f1f5f9;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 20px}
-        h1{font-size:28px;margin-bottom:8px;background:linear-gradient(135deg,#6366f1,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-        .subtitle{color:#94a3b8;margin-bottom:40px;font-size:14px}
-        .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;max-width:1100px;width:100%}
-        .card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:24px;transition:all .2s;text-decoration:none;color:#f1f5f9}
-        .card:hover{border-color:#6366f1;transform:translateY(-2px);box-shadow:0 8px 24px rgba(99,102,241,.15)}
-        .card .platform{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-        .card .platform.shopee{color:#ef4444}
-        .card .platform.tiktok{color:#06b6d4}
-        .card .platform.china{color:#f59e0b}
-        .card .title{font-size:18px;font-weight:600;margin-bottom:6px}
-        .card .meta{color:#94a3b8;font-size:13px}
-        .footer{margin-top:40px;color:#475569;font-size:12px}
+        body{
+            font-family:"Avenir Next","Segoe UI",system-ui,sans-serif;
+            background:
+                radial-gradient(circle at top center,var(--bg-glow),transparent 26%),
+                linear-gradient(180deg,#0b1324 0%,#0d1527 100%);
+            color:var(--text);
+            min-height:100vh;
+            padding:48px 20px 56px;
+        }
+        .page{max-width:1160px;margin:0 auto}
+        .hero{
+            text-align:center;
+            margin-bottom:38px;
+        }
+        h1{
+            font-size:clamp(34px,5vw,56px);
+            line-height:1.05;
+            letter-spacing:-.03em;
+            margin-bottom:12px;
+            background:linear-gradient(135deg,#6366f1,#38bdf8);
+            -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent
+        }
+        .subtitle{
+            color:var(--muted);
+            font-size:15px;
+            max-width:760px;
+            margin:0 auto;
+        }
+        .region{
+            margin-top:28px;
+            padding:22px;
+            background:rgba(23,33,51,.82);
+            border:1px solid var(--border);
+            border-radius:22px;
+            box-shadow:var(--shadow);
+            backdrop-filter:blur(10px);
+        }
+        .region.vietnam{border-top:3px solid var(--vn)}
+        .region.china{border-top:3px solid var(--cn)}
+        .region-head{
+            display:flex;
+            flex-wrap:wrap;
+            align-items:flex-end;
+            justify-content:space-between;
+            gap:12px 18px;
+            margin-bottom:18px;
+        }
+        .region-label{
+            display:inline-flex;
+            align-items:center;
+            gap:10px;
+            font-size:12px;
+            text-transform:uppercase;
+            letter-spacing:.16em;
+            color:var(--muted);
+            margin-bottom:10px;
+        }
+        .region-label::before{
+            content:"";
+            width:26px;
+            height:1px;
+            background:currentColor;
+            opacity:.7;
+        }
+        .region.vietnam .region-label strong{color:var(--vn)}
+        .region.china .region-label strong{color:var(--cn)}
+        .region-title{
+            font-size:28px;
+            letter-spacing:-.02em;
+        }
+        .region-copy{
+            color:var(--muted);
+            max-width:620px;
+            font-size:14px;
+            line-height:1.55;
+        }
+        .grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+            gap:18px;
+            width:100%;
+        }
+        .card{
+            background:linear-gradient(180deg,rgba(29,41,64,.94),rgba(23,33,51,.96));
+            border:1px solid var(--border);
+            border-radius:18px;
+            padding:24px;
+            transition:transform .2s,border-color .2s,box-shadow .2s;
+            text-decoration:none;
+            color:var(--text);
+            min-height:168px;
+            display:flex;
+            flex-direction:column;
+            justify-content:flex-start;
+        }
+        .card:hover{
+            border-color:#7dd3fc;
+            transform:translateY(-3px);
+            box-shadow:0 14px 30px rgba(56,189,248,.12);
+        }
+        .card .platform{
+            font-size:12px;
+            font-weight:700;
+            text-transform:uppercase;
+            letter-spacing:.16em;
+            margin-bottom:14px;
+        }
+        .card .platform.shopee{color:var(--shopee)}
+        .card .platform.tiktok{color:var(--tiktok)}
+        .card .platform.china{color:var(--cn)}
+        .card .title{
+            font-size:19px;
+            font-weight:650;
+            line-height:1.2;
+            margin-bottom:8px;
+        }
+        .card .meta{
+            color:var(--muted);
+            font-size:13px;
+            line-height:1.45;
+            max-width:32ch;
+        }
+        .footer{
+            margin-top:42px;
+            color:#54657f;
+            font-size:12px;
+            text-align:center;
+        }
+        @media (max-width:720px){
+            body{padding:28px 16px 40px}
+            .region{padding:18px}
+            .region-title{font-size:24px}
+        }
     </style>
 </head>
 <body>
-    <h1>BlueStone ECD — Market Research</h1>
-    <p class="subtitle">Bilingual Category Analysis Reports · Vietnam & China E-commerce Data · 2026</p>
-    <div class="grid">
-        <a class="card" href="shopee-kitchen-appliances.html">
-            <div class="platform shopee">Shopee</div>
-            <div class="title">Kitchen Appliances</div>
-            <div class="meta">厨房家电 · 21 L3 categories · 3,366 products</div>
-        </a>
-        <a class="card" href="tiktok-kitchen-appliances.html">
-            <div class="platform tiktok">TikTok Shop</div>
-            <div class="title">Kitchen Appliances</div>
-            <div class="meta">厨房家电 · 22 L3 categories · 2,456 products</div>
-        </a>
-        <a class="card" href="china-smart-tech-title-focus-q1-2026.html">
-            <div class="platform china">China · Feigua</div>
-            <div class="title">Smart Tech Title Focus</div>
-            <div class="meta">中国 Smart Tech · 4 packs merged · Q1 2026 · EN/CN</div>
-        </a>
-        <a class="card" href="shopee-hair-dryers.html">
-            <div class="platform shopee">Shopee</div>
-            <div class="title">Hair Care Tools</div>
-            <div class="meta">护发工具 · 1 L3 category · 4,424 products</div>
-        </a>
-        <a class="card" href="tiktok-hair-dryers.html">
-            <div class="platform tiktok">TikTok Shop</div>
-            <div class="title">Hair Dryers</div>
-            <div class="meta">吹风机 · 1 L3 category · 244 products</div>
-        </a>
+    <div class="page">
+        <header class="hero">
+            <h1>BlueStone ECD — Market Research</h1>
+            <p class="subtitle">Regional bilingual report index for BlueStone E-Commerce Division. Reports are grouped by market first, then by platform, so China and Vietnam analysis stay clearly separated.</p>
+        </header>
+
+        <section class="region vietnam">
+            <div class="region-head">
+                <div>
+                    <div class="region-label"><strong>Vietnam</strong> market</div>
+                    <h2 class="region-title">Vietnam E-commerce Reports</h2>
+                </div>
+                <p class="region-copy">Shopee and TikTok Shop category studies for Vietnam. This block holds local market diagnostics, platform-by-platform category structure, and product-level performance reports.</p>
+            </div>
+            <div class="grid">
+                <a class="card" href="shopee-kitchen-appliances.html">
+                    <div class="platform shopee">Shopee</div>
+                    <div class="title">Kitchen Appliances</div>
+                    <div class="meta">厨房家电 · 21 L3 categories · 3,366 products</div>
+                </a>
+                <a class="card" href="tiktok-kitchen-appliances.html">
+                    <div class="platform tiktok">TikTok Shop</div>
+                    <div class="title">Kitchen Appliances</div>
+                    <div class="meta">厨房家电 · 22 L3 categories · 2,456 products</div>
+                </a>
+                <a class="card" href="shopee-hair-dryers.html">
+                    <div class="platform shopee">Shopee</div>
+                    <div class="title">Hair Care Tools</div>
+                    <div class="meta">护发工具 · 1 L3 category · 4,424 products</div>
+                </a>
+                <a class="card" href="tiktok-hair-dryers.html">
+                    <div class="platform tiktok">TikTok Shop</div>
+                    <div class="title">Hair Dryers</div>
+                    <div class="meta">吹风机 · 1 L3 category · 244 products</div>
+                </a>
+            </div>
+        </section>
+
+        <section class="region china">
+            <div class="region-head">
+                <div>
+                    <div class="region-label"><strong>China</strong> market</div>
+                    <h2 class="region-title">China E-commerce Reports</h2>
+                </div>
+                <p class="region-copy">Feigua and China-market benchmarking reports. This block is reserved for smart-tech architecture studies, hero-category scouting, and China best-seller reference pages.</p>
+            </div>
+            <div class="grid">
+                <a class="card" href="china-smart-tech-title-focus-q1-2026.html">
+                    <div class="platform china">China · Feigua</div>
+                    <div class="title">Smart Tech Title Focus</div>
+                    <div class="meta">中国 Smart Tech · 4 packs merged · Q1 2026 · EN/CN</div>
+                </a>
+            </div>
+        </section>
+
+        <div class="footer">BlueStone E-Commerce Division © 2026</div>
     </div>
-    <div class="footer">BlueStone E-Commerce Division © 2026</div>
 </body>
 </html>
